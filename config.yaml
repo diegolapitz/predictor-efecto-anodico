@@ -1,0 +1,106 @@
+project:
+  name: predictor_ea
+  seed: 20260825
+  data_root: data/raw
+  interim_dir: data/interim
+  processed_dir: data/processed
+  models_dir: models
+  reports_dir: reports
+  logs_dir: logs
+
+sources:
+  telemetry_glob: telemetry/telemetry_*.parquet
+  official_events: official_events.parquet
+  vitm: semi_shift_measurements.parquet
+  anode_changes: "anode_changes.parquet"
+  pot_catalog: pot_catalog.csv
+
+dates:
+  train_start: 2026-01-01 00:00:00
+  train_end: 2026-06-01 00:00:00
+  validation_start: 2026-06-01 00:00:00
+  validation_end: 2026-07-01 00:00:00
+  test_start: 2026-07-01 00:00:00
+  test_end: 2026-08-01 00:00:00
+  build_months:
+    - 2026-01
+    - 2026-02
+    - 2026-03
+    - 2026-04
+    - 2026-05
+    - 2026-06
+    - 2026-07
+
+events:
+  official_start_code: 241
+  official_end_code: 242
+  allow_validated_proxy_outside_official_coverage: true
+  proxy_column: ANODE_EFFECT
+  proxy_time_offset_seconds: 170
+  proxy_default_duration_seconds: 57
+  proxy_timestamp_uncertainty_seconds: 600
+  concordance_tolerance_minutes: 10
+  post_ea_block_minutes: 30
+
+features:
+  lookback_hours: 24
+  vitm_max_age_hours: 48
+  vitm_available_at_semiturn_end: true
+  severe_gap_minutes: 30
+  raw_continuous:
+    - IMFC
+    - UMFC
+    - RMFC
+    - RKFC
+    - RTHFC
+    - SMRWFC
+    - WRMFC
+    - TALIMFC
+    - PAL2O3FC
+    - PENTEFC
+    - CDORDFC
+    - SCDOCC
+  raw_flags:
+    - FEEDER_INT
+    - AL2O3_FEED_PH2V
+    - AL2O3_FEED_PH1
+    - AL2O3_FEED_PH2I
+    - AL2O3_OVERFEED
+    - MILD_INSTABILITY
+    - SEVER_INSTABILITY
+    - EXTD_INSTABILITY
+    - TAPPING
+    - ANODE_CHANGE
+    - BEAM_MANUAL
+    - INTERRUPT_CYC
+  target_horizons_minutes: [15, 30, 60]
+
+training:
+  negative_sample_fraction: 0.02
+  comparison_horizon_minutes: 60
+  algorithms: [logistic_regression, lightgbm, extra_trees]
+  primary_algorithm: lightgbm
+  lightgbm:
+    n_estimators: 350
+    learning_rate: 0.05
+    num_leaves: 31
+    min_child_samples: 100
+    subsample: 0.85
+    colsample_bytree: 0.85
+  extra_trees:
+    n_estimators: 250
+    min_samples_leaf: 10
+    max_features: sqrt
+
+alarms:
+  persistence_window: 3
+  persistence_required: 2
+  cooldown_minutes: 30
+  ranking_k: [5, 10, 20]
+  threshold_objective: max_f1
+  selected_method: direct
+
+runtime:
+  duckdb_threads: 4
+  duckdb_memory_limit: 6GB
+
