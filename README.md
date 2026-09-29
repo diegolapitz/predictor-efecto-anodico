@@ -1,19 +1,33 @@
 # Predicción de efectos anódicos
 
-Código de investigación para estimar el riesgo de inicio de un efecto anódico y ordenar cubas en horizontes de 15, 30 y 60 minutos. El proyecto incluye preparación de series temporales, generación de variables, entrenamiento, evaluación y rankings.
+Proyecto de investigación para **ordenar cubas de electrólisis por riesgo de iniciar un efecto anódico** en los próximos 15, 30 y 60 minutos. La idea es actualizar el ranking con mediciones registradas aproximadamente cada cinco minutos para ayudar a priorizar la revisión de cubas.
 
-**Estado:** prototipo experimental; no es un sistema de alarmas en producción.
+## Qué hice
 
-## Contenido
+- Preparé series de mediciones, eventos de efecto anódico y registros operativos para construir ejemplos de entrenamiento sin usar información futura.
+- Generé variables de tendencia, variabilidad y estado reciente de cada cuba, y definí etiquetas para los tres horizontes.
+- Comparé regresión logística, Extra Trees y LightGBM; LightGBM fue el modelo principal del estudio.
+- Implementé evaluación por períodos cronológicos, rankings por cuba y métricas de detección, precisión, anticipación y carga de alarmas.
+- Incorporé pruebas de la lógica temporal y del etiquetado.
 
-- `src/`: código del pipeline y los modelos.
-- `tests/`: pruebas que no requieren datos de la planta.
-- `config.yaml`: configuración de ejemplo.
+El análisis abarcó 384 cubas. Se trabajó con entrenamiento de enero a mayo de 2026, validación en junio y evaluación retrospectiva en julio. Parte de los eventos se identificó con una señal indirecta porque el registro oficial no cubría todo el período.
+
+## Qué obtuve y qué funciona hoy
+
+El pipeline **se ejecutó con datos privados** y produjo datasets, modelos, rankings y análisis retrospectivos. En esa exploración, el ranking mostró potencial para priorizar cubas, mientras que la cantidad de avisos de una alarma automática resultó demasiado alta para recomendar su uso operativo.
+
+Una revisión posterior detectó un problema en la disponibilidad temporal de una fuente. El código se corrigió, pero **no se reconstruyó el conjunto completo ni se reentrenaron y evaluaron los modelos**. Por eso, las métricas históricas no representan el rendimiento de la versión actual. No hay una alarma validada ni un servicio conectado a planta.
+
+El código publicado pasa **6 pruebas unitarias** que no necesitan datos reales. La ejecución completa no puede probarse sólo con este repositorio porque las fuentes y los modelos son privados.
+
+## Archivos publicados
+
+- `src/`: preparación de datos, variables, entrenamiento, evaluación y ranking.
+- `tests/`: pruebas independientes de los datos de la planta.
+- `config.yaml`: configuración ilustrativa con nombres de archivos genéricos.
 - `requirements.txt`: dependencias.
 
-## Datos y reproducción
-
-Este repositorio no incluye datos reales, modelos entrenados ni resultados de la planta. Para ejecutar el pipeline completo se necesitan fuentes privadas compatibles con el esquema esperado y adaptar `config.yaml`. Por ese motivo, el entrenamiento y sus métricas no se pueden reproducir sólo con los archivos públicos.
+**No se incluyen datos reales, modelos entrenados, rankings ni resultados de la planta.** Para ejecutar el pipeline completo se necesitan fuentes autorizadas con el esquema esperado y adaptar `config.yaml`.
 
 ## Instalación y pruebas
 
